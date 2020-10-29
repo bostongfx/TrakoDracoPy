@@ -1,0 +1,2 @@
+include versioneer.py
+include TrakoDracoPy/_version.py

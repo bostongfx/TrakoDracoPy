@@ -1,7 +1,7 @@
 # distutils: language = c++
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
-cimport TrakoDracoPy
+cimport _TrakoDracoPy
 import struct
 from math import floor
 from libc.string cimport memcmp
@@ -14,7 +14,7 @@ class DracoMesh(object):
                 mesh_struct['quantization_range'], mesh_struct['quantization_origin'])
         else:
             self.encoding_options = None
-    
+
     def get_encoded_coordinate(self, value, axis):
         if self.encoding_options is not None:
             return self.encoding_options.get_encoded_coordinate(value, axis)
@@ -47,7 +47,7 @@ class DracoPointCloud(object):
                 point_cloud_struct['quantization_range'], point_cloud_struct['quantization_origin'])
         else:
             self.encoding_options = None
-    
+
     def get_encoded_coordinate(self, value, axis):
         if self.encoding_options is not None:
             return self.encoding_options.get_encoded_coordinate(value, axis)
@@ -70,7 +70,7 @@ class EncodingOptions(object):
         self.quantization_range = quantization_range
         self.quantization_origin = quantization_origin
         self.inverse_alpha = quantization_range / ((2 ** quantization_bits) - 1)
-    
+
     def get_encoded_coordinate(self, value, axis):
         if value < self.quantization_origin[axis] or value > (self.quantization_origin[axis] + self.quantization_range):
             raise ValueError('Specified value out of encoded range')
@@ -83,7 +83,7 @@ class EncodingOptions(object):
         for axis in range(self.num_axes):
             encoded_point.append(self.get_encoded_coordinate(point[axis], axis))
         return encoded_point
-    
+
     @property
     def num_axes(self):
         return 3
@@ -111,12 +111,12 @@ def encode_mesh_to_buffer(points, faces, quantization_bits=14, compression_level
             quant_origin = <float *>PyMem_Malloc(sizeof(float) * num_dims)
             for dim in range(num_dims):
                 quant_origin[dim] = quantization_origin[dim]
-        encoded_mesh = TrakoDracoPy.encode_mesh(points, faces, quantization_bits, compression_level, quantization_range, quant_origin, create_metadata)
+        encoded_mesh = _TrakoDracoPy.encode_mesh(points, faces, quantization_bits, compression_level, quantization_range, quant_origin, create_metadata)
         if quant_origin != NULL:
             PyMem_Free(quant_origin)
-        if encoded_mesh.encode_status == TrakoDracoPy.encoding_status.successful_encoding:
+        if encoded_mesh.encode_status == _TrakoDracoPy.encoding_status.successful_encoding:
             return bytes(encoded_mesh.buffer)
-        elif encoded_mesh.encode_status == TrakoDracoPy.encoding_status.failed_during_encoding:
+        elif encoded_mesh.encode_status == _TrakoDracoPy.encoding_status.failed_during_encoding:
             raise EncodingFailedException('Invalid mesh')
     except EncodingFailedException:
         raise EncodingFailedException('Invalid mesh')
@@ -126,14 +126,14 @@ def encode_mesh_to_buffer(points, faces, quantization_bits=14, compression_level
         raise ValueError("Input invalid")
 
 def decode_buffer_to_mesh(buffer):
-    mesh_struct = TrakoDracoPy.decode_buffer(buffer, len(buffer))
-    if mesh_struct.decode_status == TrakoDracoPy.decoding_status.successful:
+    mesh_struct = _TrakoDracoPy.decode_buffer(buffer, len(buffer))
+    if mesh_struct.decode_status == _TrakoDracoPy.decoding_status.successful:
         return DracoMesh(mesh_struct)
-    elif mesh_struct.decode_status == TrakoDracoPy.decoding_status.not_draco_encoded:
+    elif mesh_struct.decode_status == _TrakoDracoPy.decoding_status.not_draco_encoded:
         raise FileTypeException('Input mesh is not draco encoded')
-    elif mesh_struct.decode_status == TrakoDracoPy.decoding_status.failed_during_decoding:
+    elif mesh_struct.decode_status == _TrakoDracoPy.decoding_status.failed_during_decoding:
         raise TypeError('Failed to decode input mesh. Data might be corrupted')
-    elif mesh_struct.decode_status == TrakoDracoPy.decoding_status.no_position_attribute:
+    elif mesh_struct.decode_status == _TrakoDracoPy.decoding_status.no_position_attribute:
         raise ValueError('DracoPy only supports meshes with position attributes')
 
 def encode_point_cloud_to_buffer(points, position=True, sequential=True, remove_duplicates=False, quantization_bits=14, compression_level=1, quantization_range=-1, quantization_origin=None, create_metadata=False):
@@ -153,12 +153,12 @@ def encode_point_cloud_to_buffer(points, position=True, sequential=True, remove_
             quant_origin = <float *>PyMem_Malloc(sizeof(float) * num_dims)
             for dim in range(num_dims):
                 quant_origin[dim] = quantization_origin[dim]
-        encoded_point_cloud = TrakoDracoPy.encode_point_cloud(points, position, sequential, remove_duplicates, quantization_bits, compression_level, quantization_range, quant_origin, create_metadata)
+        encoded_point_cloud = _TrakoDracoPy.encode_point_cloud(points, position, sequential, remove_duplicates, quantization_bits, compression_level, quantization_range, quant_origin, create_metadata)
         if quant_origin != NULL:
             PyMem_Free(quant_origin)
-        if encoded_point_cloud.encode_status == TrakoDracoPy.encoding_status.successful_encoding:
+        if encoded_point_cloud.encode_status == _TrakoDracoPy.encoding_status.successful_encoding:
             return bytes(encoded_point_cloud.buffer)
-        elif encoded_point_cloud.encode_status == TrakoDracoPy.encoding_status.failed_during_encoding:
+        elif encoded_point_cloud.encode_status == _TrakoDracoPy.encoding_status.failed_during_encoding:
             raise EncodingFailedException('Invalid mesh')
     except EncodingFailedException:
         raise EncodingFailedException('Invalid mesh')
@@ -168,12 +168,12 @@ def encode_point_cloud_to_buffer(points, position=True, sequential=True, remove_
         raise ValueError("Input invalid")
 
 def decode_point_cloud_buffer(buffer):
-    point_cloud_struct = TrakoDracoPy.decode_buffer_to_point_cloud(buffer, len(buffer))
-    if point_cloud_struct.decode_status == TrakoDracoPy.decoding_status.successful:
+    point_cloud_struct = _TrakoDracoPy.decode_buffer_to_point_cloud(buffer, len(buffer))
+    if point_cloud_struct.decode_status == _TrakoDracoPy.decoding_status.successful:
         return DracoMesh(point_cloud_struct)
-    elif point_cloud_struct.decode_status == TrakoDracoPy.decoding_status.not_draco_encoded:
+    elif point_cloud_struct.decode_status == _TrakoDracoPy.decoding_status.not_draco_encoded:
         raise FileTypeException('Input point cloud is not draco encoded')
-    elif point_cloud_struct.decode_status == TrakoDracoPy.decoding_status.failed_during_decoding:
+    elif point_cloud_struct.decode_status == _TrakoDracoPy.decoding_status.failed_during_decoding:
         raise TypeError('Failed to decode input point cloud. Data might be corrupted')
-    elif point_cloud_struct.decode_status == TrakoDracoPy.decoding_status.no_position_attribute:
+    elif point_cloud_struct.decode_status == _TrakoDracoPy.decoding_status.no_position_attribute:
         raise ValueError('DracoPy only supports point clouds with position attributes')

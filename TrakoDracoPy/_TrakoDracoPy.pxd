@@ -2,15 +2,15 @@ from libcpp.vector cimport vector
 from libc.stdint cimport uint32_t
 from libcpp cimport bool
 
-cdef extern from "TrakoDracoPy.h" namespace "DracoFunctions":
+cdef extern from "_TrakoDracoPy.h" namespace "DracoFunctions":
 
     cdef enum decoding_status:
-        successful, not_draco_encoded, no_position_attribute, 
+        successful, not_draco_encoded, no_position_attribute,
         failed_during_decoding
 
     cdef enum encoding_status:
         successful_encoding, failed_during_encoding
-    
+
     cdef struct MeshObject:
         vector[float] points
         vector[unsigned int] faces
@@ -53,6 +53,6 @@ cdef extern from "TrakoDracoPy.h" namespace "DracoFunctions":
 
     EncodedMeshObject encode_mesh(vector[float] points, vector[uint32_t] faces, int quantization_bits,
         int compression_level, float quantization_range, const float *quantization_origin, bool create_metadata) except +
-    
+
     EncodedPointCloudObject encode_point_cloud(vector[float] points, bool position, bool sequential, bool remove_duplicates, int quantization_bits,
         int compression_level, float quantization_range, const float *quantization_origin, bool create_metadata) except +
