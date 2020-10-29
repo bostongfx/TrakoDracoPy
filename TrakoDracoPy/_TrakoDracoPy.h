@@ -125,7 +125,7 @@ namespace DracoFunctions {
     std::unique_ptr<draco::GeometryMetadata> metadata = std::unique_ptr<draco::GeometryMetadata>(new draco::GeometryMetadata());
     if (quantization_origin == NULL || quantization_range == -1) {
       encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, quantization_bits);
-    } 
+    }
     else {
       encoder.SetAttributeExplicitQuantization(draco::GeometryAttribute::POSITION, quantization_bits, 3, quantization_origin, quantization_range);
       if (create_metadata) {
